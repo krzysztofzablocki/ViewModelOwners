@@ -1,0 +1,8 @@
+author: Krzysztof Zablocki
+author_url: https://twitter.com/merowing_
+github_url: https://github.com/krzysztofzablocki/ViewModelOwners
+root_url: https://krzysztofzablocki.github.io/ViewModelOwners/
+module: ViewModelOwners
+output: docs
+theme: fullwidth
+xcodebuild_arguments: [-workspace, 'ViewModelOwners.xcworkspace', -scheme, 'ViewModelOwners-iOS']

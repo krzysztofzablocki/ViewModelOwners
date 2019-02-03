@@ -1,0 +1,29 @@
+PODS:
+  - ReactiveSwift (4.0.0):
+    - Result (~> 4.0)
+  - Result (4.1.0)
+  - ViewModelOwners (1.0.0):
+    - ViewModelOwners/Core (= 1.0.0)
+  - ViewModelOwners/Core (1.0.0)
+
+DEPENDENCIES:
+  - ReactiveSwift
+  - ViewModelOwners (from `../../`)
+
+SPEC REPOS:
+  https://github.com/cocoapods/specs.git:
+    - ReactiveSwift
+    - Result
+
+EXTERNAL SOURCES:
+  ViewModelOwners:
+    :path: "../../"
+
+SPEC CHECKSUMS:
+  ReactiveSwift: a2bb9ace428a109e9c0209615645d9d286c8c433
+  Result: bd966fac789cc6c1563440b348ab2598cc24d5c7
+  ViewModelOwners: 74fb1b575ab6ce7ed03491bc7e605abb1289b182
+
+PODFILE CHECKSUM: 2dfa6ffdc3054a434d090c7b98258728abc1010e
+
+COCOAPODS: 1.6.0.beta.2

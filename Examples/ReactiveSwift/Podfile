@@ -1,0 +1,6 @@
+use_frameworks!
+
+target 'ViewModelOwners_Example' do
+  pod 'ViewModelOwners', :path => '../../'
+  pod 'ReactiveSwift'
+end

@@ -1,0 +1,95 @@
+language: objective-c
+osx_image: xcode10
+branches:
+  only:
+    - master
+    - develop
+    - /^v\d+\.\d+(\.\d+)?(-\S*)?$/
+cache:
+  directories:
+    - $HOME/Library/Caches/org.carthage.CarthageKit/dependencies
+    - Carthage
+    - vendor/bundle
+
+before_install:
+  - bundle install --path vendor/bundle
+  - gem install xcpretty
+  - brew update
+  - brew outdated carthage || brew upgrade carthage
+
+env:
+  global:
+    - LC_CTYPE=en_US.UTF-8
+    - LANG=en_US.UTF-8
+    - WORKSPACE=ViewModelOwners.xcworkspace
+    - IOS_FRAMEWORK_SCHEME="ViewModelOwners-iOS"
+    - OSX_FRAMEWORK_SCHEME="ViewModelOwners-macOS"
+    - TVOS_FRAMEWORK_SCHEME="ViewModelOwners-tvOS"
+    - WATCHOS_FRAMEWORK_SCHEME="ViewModelOwners-watchOS"
+  matrix:
+    - DESTINATION="OS=12.0,name=iPhone XS"                  SCHEME="$IOS_FRAMEWORK_SCHEME"     RUN_TESTS="YES"
+    - DESTINATION="OS=11.4,name=iPhone X"                   SCHEME="$IOS_FRAMEWORK_SCHEME"     RUN_TESTS="YES"
+    - DESTINATION="OS=10.3.1,name=iPhone 7 Plus"            SCHEME="$IOS_FRAMEWORK_SCHEME"     RUN_TESTS="YES"
+    - DESTINATION="OS=9.0,name=iPhone 6"                    SCHEME="$IOS_FRAMEWORK_SCHEME"     RUN_TESTS="YES"
+    - DESTINATION="arch=x86_64"                             SCHEME="$OSX_FRAMEWORK_SCHEME"     RUN_TESTS="YES"
+    - DESTINATION="OS=12.0,name=Apple TV 4K (at 1080p)"     SCHEME="$TVOS_FRAMEWORK_SCHEME"    RUN_TESTS="YES"
+    - DESTINATION="OS=11.4,name=Apple TV 4K (at 1080p)"     SCHEME="$TVOS_FRAMEWORK_SCHEME"    RUN_TESTS="YES"
+    - DESTINATION="OS=10.2,name=Apple TV 1080p"             SCHEME="$TVOS_FRAMEWORK_SCHEME"    RUN_TESTS="YES"
+    - DESTINATION="OS=9.0,name=Apple TV 1080p"              SCHEME="$TVOS_FRAMEWORK_SCHEME"    RUN_TESTS="YES"
+    - DESTINATION="OS=5.0,name=Apple Watch Series 4 - 44mm" SCHEME="$WATCHOS_FRAMEWORK_SCHEME" RUN_TESTS="NO"
+    - DESTINATION="OS=4.2,name=Apple Watch Series 3 - 42mm" SCHEME="$WATCHOS_FRAMEWORK_SCHEME" RUN_TESTS="NO"
+    - DESTINATION="OS=3.1,name=Apple Watch Series 2 - 42mm" SCHEME="$WATCHOS_FRAMEWORK_SCHEME" RUN_TESTS="NO"
+    - DESTINATION="OS=2.0,name=Apple Watch - 38mm"          SCHEME="$WATCHOS_FRAMEWORK_SCHEME" RUN_TESTS="NO"
+
+before_script:
+  - sh scripts/bootstrap
+
+script:
+  - set -o pipefail
+  - xcodebuild -version
+  - xcodebuild -showsdks
+
+  # Build Framework in Debug and Run Tests if specified
+  - if [ $RUN_TESTS == "YES" ]; then
+      xcodebuild -workspace "$WORKSPACE" -scheme "$SCHEME" -destination "$DESTINATION" -configuration Debug ONLY_ACTIVE_ARCH=NO ENABLE_TESTABILITY=YES test | xcpretty -c;
+    else
+      xcodebuild -workspace "$WORKSPACE" -scheme "$SCHEME" -destination "$DESTINATION" -configuration Debug ONLY_ACTIVE_ARCH=NO build | xcpretty -c;
+    fi
+
+  # Build Framework in Release and Run Tests if specified
+  - if [ $RUN_TESTS == "YES" ]; then
+      xcodebuild -workspace "$WORKSPACE" -scheme "$SCHEME" -destination "$DESTINATION" -configuration Release ONLY_ACTIVE_ARCH=NO ENABLE_TESTABILITY=YES test | xcpretty -c;
+    else
+      xcodebuild -workspace "$WORKSPACE" -scheme "$SCHEME" -destination "$DESTINATION" -configuration Release ONLY_ACTIVE_ARCH=NO build | xcpretty -c;
+    fi
+
+jobs:
+  include:
+    - stage: Danger
+      script: bundle exec danger
+    - stage: Pod lib lint
+      script: bundle exec pod lib lint --verbose --allow-warnings
+    - stage: Deploy Github
+      script: skip
+      before_deploy:
+        - carthage build --no-skip-current --cache-builds
+        - carthage archive ViewModelOwners
+      deploy:
+        - provider: releases
+          api_key:
+            secure: "tjigv9QynxLNLra0GyQCd/zDJun384JFmleUCA2yK4kVuxjO7zV3DRY86qRzP64PKLKpx8AZ53PT9fu/gH5Vda85MkuF4SuYG5/idPD2QfO6UhBo35pTNSbatBsmZuAJ06kjeJXMOSxSgxJyqZGb025/U2P4kKiJJ0ohQjlIbf6yBIxjIqxl8csgcaoIHq88pNx1CmxaAWLUmNDXIlxVNI9qqDTdTqMtW6tbXjAE7XnljUwomARQ2Fg9dOIH+rkEy0O3gcPwjGZMC4UfF3RneoX4f4PM8BmPDOrucAZEyzDhWZUrlmJlltLu3ZlZWAZLYo7IATvXwe409JA5nx4dRAOz4J+2r+a1o8lf081eFaxsdMQo1mjRCPR65H5Igu8V7aIYV4tqsH1xkpUSM9/YgUBkUIONJW0nquvH+F0MaBfjagEePCAILczglEdC+n+Is6KTIuU4K/eK+kqd6n62afLdWoef5c+ZFRNkWJ+dWGTyHgS1MoTCvH8U0nmjDnhdFzFppBK6raDx3EBxf9vE/Wj5I30kptCugSnz7Uas/S+4bFZyoTqzCVxGtvo99KrURJqvnXLrB8xeoqv6xNN5iq62EddR1WXZ9fpgLrTMiVtdOkczNA4o6KUgepJMey2CEA+/gJnlzqvW6DdsvDHX3sSCvkIcuvEQuReN+zkqBJ8="
+          file:
+            - ViewModelOwners.framework.zip
+          skip_cleanup: true
+          overwrite: true
+          on:
+            repo: krzysztofzablocki/ViewModelOwners
+            tags: true
+    - stage: Deploy Cocoapods
+      script: skip
+      deploy:
+        - provider: script
+          script: bundle exec pod trunk push
+          skip_cleanup: true
+          on:
+            tags: true
