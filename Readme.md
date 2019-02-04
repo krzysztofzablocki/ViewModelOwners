@@ -9,7 +9,7 @@
 [![Travis](https://img.shields.io/travis/krzysztofzablocki/ViewModelOwners/master.svg)](https://travis-ci.org/krzysztofzablocki/ViewModelOwners/branches)
 [![codecov](https://codecov.io/gh/krzysztofzablocki/ViewModelOwners/branch/master/graph/badge.svg)](https://codecov.io/gh/krzysztofzablocki/ViewModelOwners)
 
-Two protocols that simplify MVVM integration and help you manage subscription for side-effects.
+µframework that will simplify your MVVM integration and help manage subscription for side-effects.
 
 - No need to create `viewModel` property
 - Don't need to deal with `nil` state if programmer forgot to set `viewModel` using setter injection (for `Reusable` views)
