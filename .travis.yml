@@ -16,6 +16,7 @@ before_install:
   - gem install xcpretty
   - brew update
   - brew outdated carthage || brew upgrade carthage
+  - pip install codecov
 
 env:
   global:
@@ -84,5 +85,5 @@ jobs:
           skip_cleanup: true
           on:
             tags: true
-after_success:
-  - bash <(curl -s https://codecov.io/bash)
+    - stage: Upload coverage
+      script: codecov
