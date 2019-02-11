@@ -7,7 +7,6 @@
 [![CocoaPods compatible](https://img.shields.io/cocoapods/v/ViewModelOwners.svg)](https://cocoapods.org/pods/ViewModelOwners)
 
 [![Travis](https://img.shields.io/travis/krzysztofzablocki/ViewModelOwners/master.svg)](https://travis-ci.org/krzysztofzablocki/ViewModelOwners/branches)
-[![codecov](https://codecov.io/gh/krzysztofzablocki/ViewModelOwners/branch/master/graph/badge.svg)](https://codecov.io/gh/krzysztofzablocki/ViewModelOwners)
 
 µframework that will simplify your MVVM integration and help manage subscription for side-effects.
 
@@ -26,7 +25,20 @@ class MyViewController: UIViewController, NonReusableViewModelOwner {
 
 [Read my blog post for details about this technique](http://merowing.info/2016/08/better-mvvm-setup-with-pop-and-runtime/)
 
-
+To avoid triggering view loading, you can use following pattern:
+```swift
+class MyViewController: UIViewController, NonReusableViewModelOwner {
+    func didSetViewModel(_ vm: MyViewModelProtocol, disposeBag: DisposeBag) {
+        guard isViewLoaded else { return }
+        ...
+    }
+    
+    override func viewDidLoad() {
+        super.viewDidLoad()
+        reconfigureViewModel()
+    }
+}
+```
 
 - [Requirements](#requirements)
 - [Installation](#installation)
