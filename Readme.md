@@ -193,7 +193,11 @@ func didSetViewModel(_ viewModel: ViewModel, disposeBag: DisposeBag) {
 Simply add this anywhere in your project to make Swift happy:
 
 ```swift
-extension CompositeDisposable: ViewModelOwnerManualDisposeBagProtocol {
+extension ScopedDisposable: ViewModelOwnerDisposeBagProtocol where Inner == CompositeDisposable {
+    public convenience init() {
+        self.init(CompositeDisposable())
+    }
+
     private final class Wrapper: Disposable {
         var isDisposed: Bool
         let disposable: ViewModelOwnerDisposable
@@ -210,7 +214,7 @@ extension CompositeDisposable: ViewModelOwnerManualDisposeBagProtocol {
     }
 
     public func add(_ disposable: ViewModelOwnerDisposable) {
-        add(Wrapper(disposable))
+        inner.add(Wrapper(disposable))
     }
 }
 ```
@@ -218,7 +222,7 @@ extension CompositeDisposable: ViewModelOwnerManualDisposeBagProtocol {
 and you can now use ViewModelOwners with the `ReactiveSwift`: 
 
 ```swift
-func didSetViewModel(_ viewModel: ViewModel, disposeBag: CompositeDisposable) {
+func didSetViewModel(_ viewModel: ViewModel, disposeBag: ScopedDisposable<CompositeDisposable>) {
 ```
 
 </p></details>
