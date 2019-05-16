@@ -11,25 +11,29 @@ import ReactiveSwift
 import ViewModelOwners
 import enum Result.NoError
 
-extension CompositeDisposable: ViewModelOwnerManualDisposeBagProtocol {
-    private final class Wrapper: Disposable {
-        var isDisposed: Bool
-        let disposable: ViewModelOwnerDisposable
+extension ScopedDisposable: ViewModelOwnerDisposeBagProtocol where Inner == CompositeDisposable {
+  public convenience init() {
+    self.init(CompositeDisposable())
+  }
 
-        init(_ disposable: ViewModelOwnerDisposable) {
-            self.disposable = disposable
-            isDisposed = false
-        }
+  private final class Wrapper: Disposable {
+    var isDisposed: Bool
+    let disposable: ViewModelOwnerDisposable
 
-        func dispose() {
-            disposable.dispose()
-            isDisposed = true
-        }
+    init(_ disposable: ViewModelOwnerDisposable) {
+      self.disposable = disposable
+      isDisposed = false
     }
 
-    public func add(_ disposable: ViewModelOwnerDisposable) {
-        add(Wrapper(disposable))
+    func dispose() {
+      disposable.dispose()
+      isDisposed = true
     }
+  }
+
+  public func add(_ disposable: ViewModelOwnerDisposable) {
+    inner.add(Wrapper(disposable))
+  }
 }
 
 struct ViewModel {
@@ -48,14 +52,12 @@ struct ViewModel {
 class ViewController: UIViewController, ReusableViewModelOwner {
     @IBOutlet private var titleLabel: UILabel!
 
-    func didSetViewModel(_ viewModel: ViewModel, disposeBag: CompositeDisposable) {
-        disposeBag.add(
-            viewModel
+    func didSetViewModel(_ viewModel: ViewModel, disposeBag: ScopedDisposable<CompositeDisposable>) {
+        disposeBag += viewModel
             .title
             .startWithResult({ [unowned self] (value) in
                 self.titleLabel.text = try? value.get()
             })
-        )
     }
 
     // Don't make VC's set their own VM's in real app, use coordinators or other pattern
