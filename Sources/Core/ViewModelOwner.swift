@@ -11,7 +11,7 @@ private enum ViewModelOwnerKeys {
 }
 
 ///  ViewModelOwner that doesn't support reuse, it doesn't support setting nil and will `fatalError` upon trying to access misconfigured view model.
-public protocol NonReusableViewModelOwner: AnyObject {
+@MainActor public protocol NonReusableViewModelOwner: AnyObject {
 
     /// Associated type of ViewModel.
     associatedtype ViewModelProtocol
@@ -42,7 +42,7 @@ public protocol NonReusableViewModelOwner: AnyObject {
 
 
 /// ViewModelOwner that allows reuse, it allows setting nil view models and automatically unregisters registrations on new values.
-public protocol ReusableViewModelOwner: AnyObject {
+@MainActor public protocol ReusableViewModelOwner: AnyObject {
 
     /// Associated type of ViewModel.
     associatedtype ViewModelProtocol
